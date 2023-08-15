@@ -25,6 +25,11 @@
     <script src="{{ asset('app_local/js/theme.js') }}"></script>
     <!-- /theme JS files -->
     <style>
+        body {
+            background-image: url('{{ asset('assets/slide-1.jpg') }}');
+            background-size: 140%;
+        }
+
         .container {
             display: flex;
             justify-content: center;
@@ -40,6 +45,8 @@
             text-align: center;
             font-size: 36px;
             border-radius: 12px;
+            font-family: 'Rubik';
+            color: rgba(0, 0, 0, 0.8);
         }
 
         .input:focus {
@@ -74,7 +81,7 @@
                     <div class="card mb-0">
                         <div class="card-body">
                             <div class="text-center">
-                                <i class="ph-lock ph-3x"></i>
+                                <i class="ph-lock ph-3x text-primary"></i>
                             </div>
 
                             <div class="text-center mb-3">
