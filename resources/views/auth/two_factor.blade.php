@@ -41,12 +41,21 @@
             width: 50px;
             border: none;
             border: 3px solid rgba(0, 0, 0, 0.1);
-            margin: 0 6px;
+            margin: 0 6px 6px 0;
             text-align: center;
             font-size: 36px;
             border-radius: 12px;
             font-family: 'Rubik';
-            color: rgba(0, 0, 0, 0.8);
+        }
+
+        @media only screen and (max-width: 600px) {
+            .input {
+                width: 30px;
+                height: 40px;
+                border: 2px solid rgba(0, 0, 0, 0.1);
+                border-radius: 8px;
+                font-size: 26px;
+            }
         }
 
         .input:focus {
