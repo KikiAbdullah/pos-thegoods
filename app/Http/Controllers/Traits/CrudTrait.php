@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace App\Http\Controllers\Traits;
 
@@ -6,7 +6,8 @@ use DB;
 use App\Helpers\LogHelper;
 use Illuminate\Http\Request;
 
-trait CrudTrait {
+trait CrudTrait
+{
 
 	use CrudHelperTrait;
 
@@ -17,16 +18,16 @@ trait CrudTrait {
 	 */
 	public function index(Request $request)
 	{
-    	$view  = [
-    		'title'			=> $this->title,
-    		'subtitle'		=> $this->subtitle,
+		$view  = [
+			'title'			=> $this->title,
+			'subtitle'		=> $this->subtitle,
 			'folder'		=> $this->folder ?? '',
-    		'items'			=> method_exists($this, 'ajaxData') ? null : $this->indexData($this->withTrashed),
-    		'url'			=> array_merge(['store' => $this->generateUrl('store'),'edit' => $this->generateUrl('edit'),'destroy' => $this->generateUrl('destroy'), 'foto' => $this->generateUrl('foto')], $this->completeUrl()),
-    		'data'			=> method_exists($this, 'formData') ? $this->formData() : null,
+			'items'			=> method_exists($this, 'ajaxData') ? null : $this->indexData($this->withTrashed),
+			'url'			=> array_merge(['store' => $this->generateUrl('store'), 'edit' => $this->generateUrl('edit'), 'destroy' => $this->generateUrl('destroy'), 'foto' => $this->generateUrl('foto')], $this->completeUrl()),
+			'data'			=> method_exists($this, 'formData') ? $this->formData() : null,
 			'form'			=> $this->generateViewName('form'),
-    	];
-	    return view($this->generateViewName(__FUNCTION__))->with($view);
+		];
+		return view($this->generateViewName(__FUNCTION__))->with($view);
 	}
 
 	/**
@@ -36,7 +37,7 @@ trait CrudTrait {
 	 */
 	public function create()
 	{
-		
+
 		$view = [
 			'title'			=> $this->title,
 			'subtitle'		=> $this->subtitle,
@@ -60,47 +61,45 @@ trait CrudTrait {
 	public function store(Request $request)
 	{
 		try {
-			
+
 			DB::beginTransaction();
-			
+
 			$data  = $this->getRequest();
-			
+
 			$model = $this->model->fill($data);
 
-			$model->save(); 
-			
+			$model->save();
+
 			if (method_exists($this, 'customStore')) {
 				$this->customStore($data, $model);
 			}
 
 			$log_helper 	= new LogHelper;
 
-			$log_helper->storeLog('add', $model->no??$model->id, $this->subtitle);
+			$log_helper->storeLog('add', $model->no ?? $model->id, $this->subtitle);
 
 			DB::commit();
-			if($request->ajax()){
+			if ($request->ajax()) {
 				$response           = [
 					'status'            => true,
 					'msg'               => 'Data Saved.',
 				];
 				return response()->json($response);
-			}else{
+			} else {
 				return $this->redirectSuccess(__FUNCTION__, false);
 			}
-
 		} catch (Exception $e) {
-			
+
 			DB::rollback();
-			if($request->ajax()){
+			if ($request->ajax()) {
 				$response           = [
 					'status'            => false,
 					'msg'               => $e->getMessage(),
 				];
 				return response()->json($response);
-			}else{
+			} else {
 				return $this->redirectBackWithError($e->getMessage());
 			}
-
 		}
 	}
 
@@ -112,20 +111,20 @@ trait CrudTrait {
 	 */
 	public function show($id)
 	{
-		if($this->withTrashed){
+		if ($this->withTrashed) {
 			$model = $this->model->withTrashed()->with($this->relation)->findOrFail($id);
-		}else{
+		} else {
 			$model = $this->model->with($this->relation)->findOrFail($id);
 		}
-		
-		
+
+
 		$view  = [
 			'title'				=> $this->title,
 			'subtitle'			=> $this->subtitle,
 			'folder'			=> $this->folder ?? '',
 			'data'				=> method_exists($this, 'formData') ? $this->formData() : null,
 			'id'				=> $id,
-			'url'				=> array_merge(['store' => $this->generateUrl('store'),'edit' => $this->generateUrl('edit'),'destroy' => $this->generateUrl('destroy')], $this->completeUrl()),
+			'url'				=> array_merge(['store' => $this->generateUrl('store'), 'edit' => $this->generateUrl('edit'), 'destroy' => $this->generateUrl('destroy')], $this->completeUrl()),
 			'item'				=> $model,
 		];
 
@@ -140,9 +139,9 @@ trait CrudTrait {
 	 */
 	public function edit(Request $request, $id)
 	{
-		if($this->withTrashed){
+		if ($this->withTrashed) {
 			$model = $this->model->withTrashed()->with($this->relation)->findOrFail($id);
-		}else{
+		} else {
 			$model = $this->model->with($this->relation)->findOrFail($id);
 		}
 
@@ -159,18 +158,17 @@ trait CrudTrait {
 				'show'		=> $this->generateUrl('show'),
 			],
 			'custom_data'	=> method_exists($this, 'customData') ? $this->customData($model) : null,
-			
+
 		];
-		if($request->ajax()){
+		if ($request->ajax()) {
 			$response           = [
 				'status'            => true,
 				'view'              => view($this->generateViewName(__FUNCTION__))->with($view)->render(),
 			];
 			return response()->json($response);
-		}else{
+		} else {
 			return view($this->generateViewName(__FUNCTION__))->with($view);
 		}
-		
 	}
 
 	/**
@@ -184,14 +182,14 @@ trait CrudTrait {
 	{
 
 		try {
-			
+
 			DB::beginTransaction();
 
 			$data  = $this->getRequest();
 
-			if($this->withTrashed){
+			if ($this->withTrashed) {
 				$model = $this->model->withTrashed()->findOrFail($id);
-			}else{
+			} else {
 				$model = $this->model->findOrFail($id);
 			}
 
@@ -205,32 +203,30 @@ trait CrudTrait {
 
 			$log_helper 	= new LogHelper;
 
-			$log_helper->storeLog('edit', $model->no??$model->id,$this->subtitle);
+			$log_helper->storeLog('edit', $model->no ?? $model->id, $this->subtitle);
 
 			DB::commit();
-			if($request->ajax()){
+			if ($request->ajax()) {
 				$response           = [
 					'status'            => true,
 					'msg'               => 'Data Saved.',
 				];
 				return response()->json($response);
-			}else{
+			} else {
 				return $this->redirectSuccess(__FUNCTION__, false);
 			}
-
 		} catch (Exception $e) {
-			
+
 			DB::rollback();
-			if($request->ajax()){
+			if ($request->ajax()) {
 				$response           = [
 					'status'            => false,
 					'msg'               => $e->getMessage(),
 				];
 				return response()->json($response);
-			}else{
+			} else {
 				return $this->redirectBackWithError($e->getMessage());
 			}
-
 		}
 	}
 
@@ -243,36 +239,33 @@ trait CrudTrait {
 	public function destroy($id)
 	{
 		try {
-			
+
 			DB::beginTransaction();
 
-			if($this->withTrashed){
+			if ($this->withTrashed) {
 				$model = $this->model->withTrashed()->with($this->relation)->findOrFail($id);
-			}else{
+			} else {
 				$model = $this->model->with($this->relation)->findOrFail($id);
 			}
-			
+
 			if (method_exists($this, 'customDestroy')) {
 				$this->customDestroy($model);
 			}
 
 			$log_helper 	= new LogHelper;
 
-			$log_helper->storeLog('delete', $model->no??$model->id,$this->subtitle);
+			$log_helper->storeLog('delete', $model->no ?? $model->id, $this->subtitle);
 
 			$model->delete();
 
 			DB::commit();
 
 			return $this->redirectSuccess(__FUNCTION__, false);
-
 		} catch (Exception $e) {
-			
+
 			DB::rollback();
 
 			return $this->redirectBackWithError($e->getMessage());
-
 		}
 	}
-
 }

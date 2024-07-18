@@ -1,21 +1,22 @@
 <?php
-function st_aktif($var){
-    if(empty($var)){
+
+use Carbon\Carbon;
+
+function st_aktif($var)
+{
+    if (empty($var)) {
         return "<center><div class=\"badge bg-primary\">Enabled</div></center>";
-    }else{
+    } else {
         return "<center><div class=\"badge bg-light text-body\">Disabled</div></center>";
     }
 }
 
-function cleanNumber($val){
-    return  str_replace('.00', '', number_format($val, 2,'.',',')); 
-}
-
-function namaBulan($var){
+function namaBulan($var)
+{
     switch ($var) {
         case 1:
-          $result = "Januari";
-          break;
+            $result = "Januari";
+            break;
         case 2:
             $result = "Februari";
             break;
@@ -51,7 +52,52 @@ function namaBulan($var){
             break;
         default:
             $result = "";
-      }
-      return $result;
+    }
+    return $result;
 }
-?>
+
+
+if (!function_exists('formatDate')) {
+
+    function formatDate($from, $to, $date)
+    {
+        if (!empty($date)) {
+            return Carbon::createFromFormat($from, $date)->format($to);
+        }
+    }
+}
+
+
+if (!function_exists('cleanNumber')) {
+    function cleanNumber($val)
+    {
+        if (!empty($val)) {
+            return  str_replace('.00', '', number_format($val, 2, '.', ','));
+        }
+    }
+}
+
+
+if (!function_exists('responseSuccess')) {
+
+    function responseSuccess($data = [], $message = 'Data saved.')
+    {
+        return [
+            'status'            => true,
+            'msg'               => $message,
+            'data'              => $data,
+        ];
+    }
+}
+
+if (!function_exists('responseFailed')) {
+
+    function responseFailed($message = 'Gagal')
+    {
+        return [
+            'status'            => false,
+            'msg'               => $message,
+            'data'              => [],
+        ];
+    }
+}
