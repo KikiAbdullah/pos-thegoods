@@ -21,11 +21,19 @@
                     </a>
                 </li>
 
+                <li class="nav-item">
+                    <a href="{{ route('pos.index') }}"
+                        class="navbar-nav-link rounded {{ $title == 'POS' ? 'active' : '' }}">
+                        <i class="ph-notepad me-2"></i>
+                        POS
+                    </a>
+                </li>
+
                 @can('transaction_view')
                     <li class="nav-item">
                         <a href="{{ route('transaction.index') }}"
                             class="navbar-nav-link rounded {{ $title == 'Transaction' ? 'active' : '' }}">
-                            <i class="ph-house me-2"></i>
+                            <i class="ph-notepad me-2"></i>
                             Transaction
                         </a>
                     </li>
@@ -37,7 +45,7 @@
                         <a href="#"
                             class="navbar-nav-link dropdown-toggle rounded {{ in_array($title, ['Package', 'Addon']) ? 'active' : '' }}"
                             data-bs-toggle="dropdown">
-                            <i class="ph-gear me-2"></i>
+                            <i class="ph-stack me-2"></i>
                             Master
                         </a>
 
@@ -46,14 +54,14 @@
                             @can('master_package')
                                 <a href="{{ route('master.package.index') }}"
                                     class="dropdown-item {{ $title == 'Package' ? 'active' : '' }}">
-                                    <i class="ph-gear-six me-2"></i>
+                                    <i class="ph-package me-2"></i>
                                     Package
                                 </a>
                             @endcan
                             @can('master_addon')
                                 <a href="{{ route('master.addon.index') }}"
                                     class="dropdown-item {{ $title == 'Addon' ? 'active' : '' }}">
-                                    <i class="ph-user-gear me-2"></i>
+                                    <i class="ph-puzzle-piece me-2"></i>
                                     Add-on
                                 </a>
                             @endcan

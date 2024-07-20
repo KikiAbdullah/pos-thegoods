@@ -73,9 +73,30 @@ Route::group(['middleware' => ['auth']], function () {
 
             Route::get('change-status/{trans_id}',        'TransactionController@changeStatus')->name('change-status');
             Route::get('unchange-status/{trans_id}',      'TransactionController@unChangeStatus')->name('unchange-status');
+
+            Route::get('upload-url-form/{trans_id}',      'TransactionController@uploadUrlForm')->name('upload-url-form')->middleware('can:transaction_create');
+            Route::post('upload-url/{trans_id}',           'TransactionController@uploadUrl')->name('upload-url')->middleware('can:transaction_create');
         });
         Route::resource('transaction', 'TransactionController')->middleware('can:transaction_view');
         ///TRANSACTION
+
+
+        ///POS
+        Route::group(['prefix' => 'pos', 'as' => 'pos.'], function () {
+            Route::get('order-list',      'PosController@orderList')->name('order-list');
+            Route::get('trans-today',      'PosController@transToday')->name('trans-today');
+
+            Route::get('get-transaction',      'PosController@getTransaction')->name('get-transaction');
+            Route::get('choose-package',        'PosController@choosePackage')->name('choose-package');
+
+            Route::get('addon/delete/{line_id}',    'PosController@deleteAddon')->name('addon-delete');
+
+            Route::get('get-customer',     'PosController@getCustomer')->name('get-customer');
+            Route::get('form-customer',     'PosController@formCustomer')->name('form-customer');
+            Route::post('store-customer',    'PosController@storeCustomer')->name('store-customer');
+        });
+        Route::resource('pos', 'PosController');
+        ///POS
 
     });
 

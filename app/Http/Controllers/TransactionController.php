@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\LogHelper;
+use App\Http\Controllers\Traits\WhatsappTrait;
 use App\Models\Master\Addon;
 use App\Models\Master\Package;
 use App\Models\Transaction;
@@ -13,9 +14,14 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Validator;
 use Yajra\DataTables\DataTables;
 use DB;
+use GuzzleHttp\Exception\RequestException;
+use Illuminate\Support\Facades\Storage;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class TransactionController extends Controller
 {
+    use WhatsappTrait;
+
     public function __construct(Transaction $model, LogHelper $logHelper)
     {
         $this->title            = 'Transaction';
@@ -74,13 +80,8 @@ class TransactionController extends Controller
 
             case 'ordered':
                 $button['unordered']      = $this->generateUrl('unchange-status');
-                $button['photoshoot']      = $this->generateUrl('change-status');
-                break;
-
-            case 'photoshoot':
-                $button['unphotoshoot']      = $this->generateUrl('unchange-status');
                 $button['payment']      = $this->generateUrl('change-status');
-
+                $button['upload-url-form']      = $this->generateUrl('upload-url-form');
                 break;
 
             case 'payment':
@@ -105,7 +106,7 @@ class TransactionController extends Controller
     {
         $model->status              = "open";
 
-        $no                         = $this->gen_number($this->model, 'no', 'TRX$$-@@#####', $model->tanggal, 'tanggal', true);
+        $no                         = $this->gen_number($this->model, 'no', 'TR$$@@###', $model->tanggal, 'tanggal', true);
         $model->no                  = $no;
         $model->save();
     }
@@ -296,12 +297,13 @@ class TransactionController extends Controller
                     $statusEdited = 'ordered';
                     $msg = 'Pemesanan nomor transaksi ' . $transaction->no . ' telah diterima';
                     $logMsg = 'Pemesanan nomor transaksi <b>' . $transaction->no . '</b> telah diterima';
-                    break;
 
-                case 'photoshoot':
-                    $statusEdited = 'photoshoot';
-                    $msg = 'Nomor transaksi ' . $transaction->no . ' memulai sesi photo';
-                    $logMsg = 'Nomor transaksi <b>' . $transaction->no . '</b> memulai sesi photo';
+                    if ($transaction->packages->isEmpty()) {
+                        DB::rollback();
+
+                        return response()->json(responseFailed('Package harus diisi'));
+                    }
+
                     break;
 
                 case 'payment':
@@ -311,6 +313,16 @@ class TransactionController extends Controller
                     break;
 
                 case 'verify':
+
+                    $invoicePdf     = $this->makeInvoicePdf();
+
+                    $subject        = "Hai Kak " . ucwords($transaction->customer_name);
+                    $textWa         = $this->textWhatsapp($transaction);
+                    $footer         = "\nBest Regards,\nThe Good Studios";
+
+                    $this->sendWhatsapp('085155300552', $subject, $textWa, $footer);
+                    $this->sendWhatsappAttachment('085155300552', $subject, $textWa, $footer, public_path('storage/invoice/' . $invoicePdf));
+
                     $statusEdited = 'verify';
                     $msg = 'Nomor transaksi ' . $transaction->no . ' berhasil diverifikasi';
                     $logMsg = 'Nomor transaksi <b>' . $transaction->no . '</b> berhasil diverifikasi';
@@ -354,14 +366,8 @@ class TransactionController extends Controller
                     $logMsg = 'Pemesanan nomor transaksi <b>' . $transaction->no . '</b> telah dibatalkan';
                     break;
 
-                case 'unphotoshoot':
-                    $statusEdited = 'ordered';
-                    $msg = 'Nomor transaksi ' . $transaction->no . ' batal memulai sesi photo';
-                    $logMsg = 'Nomor transaksi <b>' . $transaction->no . '</b> batal memulai sesi photo';
-                    break;
-
                 case 'unpayment':
-                    $statusEdited = 'photoshoot';
+                    $statusEdited = 'ordered';
                     $msg = 'Nomor transaksi ' . $transaction->no . ' batal melakukan pembayaran';
                     $logMsg = 'Nomor transaksi <b>' . $transaction->no . '</b> batal melakukan pembayaran';
                     break;
@@ -389,5 +395,99 @@ class TransactionController extends Controller
             return response()->json(responseFailed($e->getMessage()));
         }
     }
+
+    public function uploadUrlForm(Request $request, $id)
+    {
+        $model                      = $this->model->with($this->relation)->find($id);
+
+        $data['id']                 = $id;
+        $data['url']                = $this->generateUrl('upload-url');
+        $data['item']               = $model;
+
+        return view($this->generateViewName('upload-url-form'))->with($data);
+    }
+
+    public function uploadUrl(Request $request, $id)
+    {
+        try {
+
+            DB::beginTransaction();
+
+            $data                    = $request->all();
+
+            $transaction = Transaction::find($id);
+
+            //addons
+            if (!empty(array_filter($data['url']))) {
+                $addons = [];
+                foreach (array_filter($data['url']) as $package_id => $url) {
+                    $transPackage = TransactionPackage::find($package_id);
+
+                    $transPackage->update([
+                        'url' => $url,
+                    ]);
+                }
+            }
+
+            //addons
+
+            $this->logHelper->storeLogMsg('Penambahan URL pada Nomor Transaksi <b>' . $transaction->no . '</b>', 'update');
+
+            DB::commit();
+
+            return response()->json(responseSuccess());
+        } catch (Exception $e) {
+
+            DB::rollback();
+
+            return response()->json(responseFailed($e->getMessage()));
+        }
+    }
     //PROCESS
+
+
+    ///WHATSAPP TEXT
+    public function textWhatsapp($trans)
+    {
+        $text = "";
+
+        foreach ($trans->packages as $package) {
+            $text .= $package->package_name . " : " . $package->url . " \n";
+        }
+
+        $text .= "\nBerikut untuk link soft file dari hasil foto The Good Studios\n";
+        $text .= "Untuk link google drive berlaku setelah pesan ini terkirim & jangan lupa buat ulas kami di google drive ya kak..";
+
+        return $text;
+    }
+
+    public function makeInvoicePdf()
+    {
+        $view = [
+            'title'         => 'INVOICE',
+        ];
+
+        $pdf = Pdf::loadView($this->generateViewName('print'), $view);
+        $pdf->setOption('enable-javascript', true);
+        $pdf->setOption('javascript-delay', 5000);
+        $pdf->setOption('enable-smart-shrinking', true);
+        $pdf->setOption('no-stop-slow-scripts', true);
+
+        $content    = $pdf->download()->getOriginalContent();
+        $pdf_name   = $this->makeFileName();
+
+
+        $file =   Storage::put('public/invoice/' . $pdf_name, $content);
+
+        return $pdf_name;
+    }
+
+    public function makeFileName()
+    {
+        $title          = formatDate('Y-m-d', 'F_Y', date('Y-m-d')) . '-report_reminder.pdf';
+
+        return $title;
+    }
+    ///WHATSAPP TEXT
+
 }

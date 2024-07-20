@@ -158,6 +158,7 @@ const attrByType = (type) => {
 const SelectRemoteData = (elClass, url, elParent = "") => {
     $(elClass).select2({
         dropdownParent: elParent != "" ? $(elParent) : null,
+        allowClear: true,
         ajax: {
             url: url,
             dataType: "json",

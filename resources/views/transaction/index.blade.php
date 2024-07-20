@@ -280,6 +280,18 @@
                 });
             });
 
+            //submit form line
+            $('body').on("submit", '#l-upload-form', function(e) {
+                e.preventDefault();
+
+                let urlForm = $(this).attr('action');
+                let dataForm = $(this).serialize();
+
+                CustomAjax(urlForm, 'POST', dataForm, () => {
+                    dtable.ajax.reload(null, false);
+                    $("#mymodal").modal('hide');
+                });
+            });
         });
 
         const BtnOption = (title, el, e) => {
@@ -291,6 +303,7 @@
                 dtable.ajax.reload(null, false);
             });
         }
+
 
         function changePackage(id, el, modal) {
             $(el).closest("ul").find('.active').removeClass("active").removeClass("fw-semibold").removeClass("text-white")
@@ -325,15 +338,15 @@
             $(formId).find('input:not([disabled])').val('');
         }
 
-        const HistoryTransaksi = (el, e) => {
+        const BtnUploadUrl = (el, e) => {
 
             e.preventDefault();
 
             $("#mymodal").find('.modal-body').html('<center><i class="ph-spinner spinner"></i></center>');
-            $("#mymodal").find('.modal-title').html('History Transaksi');
+            $("#mymodal").find('.modal-title').html('Add URL Google Drive');
             $("#mymodal").find('.modal-header').removeClass('bg-indigo').addClass('bg-success');
             $("#mymodal").find('.modal-dialog').removeAttr('class').attr('class',
-                'modal-dialog modal-dialog-scrollable');
+                'modal-dialog modal-xl modal-dialog-scrollable');
             $("#mymodal").modal('show');
             // $(".modal-backdrop.show").css('opacity', .05);
 

@@ -19,6 +19,7 @@ class CreateTransactionPackagesTable extends Migration
             $table->bigInteger('package_id')->unsigned();
             $table->string('package_name')->nullable();
             $table->decimal('harga', 30, 2)->nullable();
+            $table->text('url')->nullable();
             $table->string('created_by', 50)->nullable();
             $table->timestamps();
             $table->softDeletes();

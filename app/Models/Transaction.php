@@ -60,15 +60,10 @@ class Transaction extends Model
                 $title      = 'Ordered';
                 $badge      = 'primary';
                 break;
-            case 'photoshoot':
-                $title      = 'Photoshoot';
-                $badge      = 'success';
-                break;
             case 'payment':
                 $title      = 'Payment';
                 $badge      = 'warning';
                 break;
-
             case 'verify':
                 $title      = 'Verified';
                 $badge      = 'success';

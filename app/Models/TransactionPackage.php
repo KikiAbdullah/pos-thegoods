@@ -18,6 +18,7 @@ class TransactionPackage extends Model
         'package_id',
         'package_name',
         'harga',
+        'url',
         'created_by',
     ];
 
