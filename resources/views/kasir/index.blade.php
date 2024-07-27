@@ -305,21 +305,9 @@
         }
 
 
-        function changePackage(id, el, modal) {
-            $(el).closest("ul").find('.active').removeClass("active").removeClass("fw-semibold").removeClass("text-white")
-                .addClass("bg-opacity-10").addClass("text-success");
-
-            $(el).closest("form").find('input[name="package_id"]').val(id)
-
-            $(el).addClass("active").addClass('fw-semibold').addClass('text-white').addClass('text-success').removeClass(
-                "bg-opacity-10");
-        }
-
-
         function showform() {
             dtable.rows().deselect();
             $("#dynamic-form").show();
-            $('#dynamic-form').find('select[name="asal_rak_id"]').trigger('change');
         }
 
         function deselectRow() {
@@ -336,28 +324,6 @@
         const ClearFormLines = (formId) => {
             $(formId).find('select:not([dont-clear])').val('').trigger('change');
             $(formId).find('input:not([disabled])').val('');
-        }
-
-        const BtnUploadUrl = (el, e) => {
-
-            e.preventDefault();
-
-            $("#mymodal").find('.modal-body').html('<center><i class="ph-spinner spinner"></i></center>');
-            $("#mymodal").find('.modal-title').html('Add URL Google Drive');
-            $("#mymodal").find('.modal-header').removeClass('bg-indigo').addClass('bg-success');
-            $("#mymodal").find('.modal-dialog').removeAttr('class').attr('class',
-                'modal-dialog modal-xl modal-dialog-scrollable');
-            $("#mymodal").modal('show');
-            // $(".modal-backdrop.show").css('opacity', .05);
-
-            $.ajax({
-                url: $(el).data('url'),
-                type: 'GET',
-                success: function(response) {
-                    $("#mymodal").find('.modal-body').html(response);
-                }
-            });
-
         }
 
         $(document).on('init.dt', function(e, settings) {

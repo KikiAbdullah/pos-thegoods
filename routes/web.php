@@ -94,6 +94,9 @@ Route::group(['middleware' => ['auth']], function () {
 
             Route::get('menuoption',        'KasirController@menuoption')->name('menuoption');
 
+            Route::get('print/{id}',        'KasirController@print')->name('print');
+            Route::get('excel/{id}',        'KasirController@excel')->name('excel');
+
             Route::get('lines',             'KasirController@lines')->name('lines');
         });
         Route::resource('kasir', 'KasirController')->middleware('can:kasir_view');

@@ -130,8 +130,9 @@
                                 <tr>
                                     <th class="text-center" width="3%">#</th>
                                     <th width="10%">No</th>
-                                    <th width="15%" class="text-center">Service Time</th>
                                     <th>Customer</th>
+                                    <th>Packages</th>
+                                    <th>Add ons</th>
                                     @foreach ($data['list_tipe_pembayaran']->sortKeysDesc() as $tipePembayaran)
                                         <th class="text-center" width="15%">Total {{ $tipePembayaran }} (Rp)</th>
                                     @endforeach
@@ -159,8 +160,9 @@
                                     <tr>
                                         <td>{{ $loop->iteration }}</td>
                                         <td>{{ $trans->no }}</td>
-                                        <td class="text-center">{{ $trans->service_time }}</td>
                                         <td>{{ ucwords($trans->customer_name) }}</td>
+                                        <td>{!! implode(',<br>', $trans->packages->pluck('package_name')->toArray()) !!}</td>
+                                        <td>{!! implode(',<br>', $trans->addons->pluck('addon_name')->toArray()) !!}</td>
                                         @foreach ($data['list_tipe_pembayaran'] as $idPembayaran => $tipePembayaran)
                                             <td class="text-end">
                                                 {{ $trans->tipe_pembayaran_id == $idPembayaran ? cleanNumber($trans->total) : '' }}
@@ -169,7 +171,8 @@
                                     </tr>
                                 @endforeach
                                 <tr>
-                                    <th class="text-end" colspan="4">Total (Rp)</th>
+                                    <th class="text-end" colspan="{{ count($data['list_tipe_pembayaran']) + 3 }}">Total
+                                        (Rp)</th>
                                     @foreach ($data['list_tipe_pembayaran']->sortKeysDesc() as $idPembayaran => $tipePembayaran)
                                         <th class="text-end">
                                             {{ cleanNumber($item->transaction->where('status', 'verify')->where('tipe_pembayaran_id', $idPembayaran)->sum('total')) }}
@@ -177,20 +180,21 @@
                                     @endforeach
                                 </tr>
                                 <tr>
-                                    <td class="bg-success fs-lg fw-semibold" colspan="7">Rekap Transaksi</td>
+                                    <td class="bg-success fw-semibold" colspan="{{ count($data['list_tipe_pembayaran']) + 5 }}">
+                                        Rekap Transaksi</td>
                                 </tr>
                                 <tr>
-                                    <th class="text-end" colspan="{{ count($data['list_tipe_pembayaran']) + 3 }}">Total
+                                    <th class="text-end" colspan="{{ count($data['list_tipe_pembayaran']) + 4 }}">Total
                                         Kasir (Saldo Awal + Total Tunai)</th>
                                     <th class="text-end">{{ cleanNumber($saldoAwal + $totalTunai) }}</th>
                                 </tr>
                                 <tr>
-                                    <th class="text-end" colspan="{{ count($data['list_tipe_pembayaran']) + 3 }}">Saldo
+                                    <th class="text-end" colspan="{{ count($data['list_tipe_pembayaran']) + 4 }}">Saldo
                                         Awal Kasir</th>
                                     <th class="text-end">{{ cleanNumber($saldoAwal) }}</th>
                                 </tr>
                                 <tr>
-                                    <th class="text-end" colspan="{{ count($data['list_tipe_pembayaran']) + 3 }}">Total
+                                    <th class="text-end" colspan="{{ count($data['list_tipe_pembayaran']) + 4 }}">Total
                                         Transaksi Tunai</th>
                                     <th class="text-end">{{ cleanNumber($totalTunai) }}</th>
                                 </tr>
@@ -199,12 +203,12 @@
 
                                 @if (!empty($totalTunaiDiKasir))
                                     <tr>
-                                        <th class="text-end" colspan="{{ count($data['list_tipe_pembayaran']) + 3 }}">Saldo
+                                        <th class="text-end" colspan="{{ count($data['list_tipe_pembayaran']) + 4 }}">Saldo
                                             Akhir Tunai di Kasir</th>
                                         <th class="text-end">{{ cleanNumber($totalTunaiDiKasir) }}</th>
                                     </tr>
                                     <tr>
-                                        <th class="text-end" colspan="{{ count($data['list_tipe_pembayaran']) + 3 }}">
+                                        <th class="text-end" colspan="{{ count($data['list_tipe_pembayaran']) + 4 }}">
                                             Selisih
                                         </th>
                                         <th class="text-end">

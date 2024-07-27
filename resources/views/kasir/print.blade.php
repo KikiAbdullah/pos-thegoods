@@ -1,19 +1,93 @@
-<div class="card">
-    <div class="card-header bg-success text-white d-sm-flex">
-        <div>
-            <h6 class="mb-sm-0" id="trans-no">
-                #{{ $id }}
-            </h6>
-        </div>
+<html>
 
-        <div class="d-sm-flex align-items-sm-center text-end flex-sm-nowrap ms-sm-auto">
-            <div class="fs-sm">Created By: <br><span class="fs-lg fw-bold">{{ ucwords($item->createdBy->name) }}</span>
-            </div>
-        </div>
-    </div>
-    <input type="hidden" name="id" value="{{ $id }}">
-    <div class="table-responsive">
-        <table class="table table-xxs table-bordered" id="dtable">
+<head>
+    <title>LAPORAN TRANSAKSI</title>
+    <style>
+        @page {
+            margin: 0.2cm;
+        }
+
+        body {
+            font-size: 8pt;
+            font-family: Arial, Helvetica, sans-serif;
+            margin: 0.2cm;
+        }
+
+        .title {
+            font-size: 12pt;
+            font-weight: bold;
+        }
+
+        p {
+            margin: 0;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .text-end {
+            text-align: right;
+        }
+
+        .table-item thead tr th,
+        .table-item tbody tr td {
+            padding: 4px 8px;
+        }
+
+        .table-item tbody tr th {
+            padding: 4px 8px;
+        }
+
+        .table-item thead {
+            background: #ccc;
+            border-bottom: 0.5px solid #000;
+            border-top: 0.5px solid #000;
+        }
+
+        .table-item tbody {
+            border: 0.5px solid #000;
+        }
+
+        .table-ttd tr td {
+            border: 0.5px solid #000;
+        }
+
+        ul li {
+            font-size: 0.655rem;
+            list-style: decimal;
+        }
+    </style>
+</head>
+
+<body>
+
+    <table width="100%">
+        <tr>
+            <td>
+                <div class="title">LAPORAN TRANSAKSI</div>
+                <table width="50%">
+                    <tr>
+                        <td>Tanggal</td>
+                        <td>: {{ $item->tanggal_formatted }}</td>
+                    </tr>
+                    <tr>
+                        <td>Kasir</td>
+                        <td>: {{ $item->createdBy->name }}</td>
+                    </tr>
+                </table>
+            </td>
+            <td></td>
+            <td width="25%" valign="top" style="text-align: right;">
+                <img src="{{ public_path('app_local/img/logo.png') }}" width="100" style="margin-bottom: 10px;">
+                <h3>The Good Studios</h3>
+                <small>Ruko Pandaan Square Blok C-4, Kluncing, Kec. Pandaan, Pasuruan 67156</small>
+            </td>
+        </tr>
+    </table>
+    <br />
+    <div style="min-height: 200px;vertical-align: top;">
+        <table width="100%" class="table-item" cellspacing="0" cellspadding="0" border="0.5">
             <thead>
                 <tr>
                     <th class="text-center" width="3%">#</th>
@@ -59,8 +133,7 @@
                     </tr>
                 @endforeach
                 <tr>
-                    <th class="text-end" colspan="{{ count($data['list_tipe_pembayaran']) + 3 }}">Total
-                        (Rp)</th>
+                    <th class="text-end" colspan="{{ count($data['list_tipe_pembayaran']) + 3 }}">Total (Rp)</th>
                     @foreach ($data['list_tipe_pembayaran']->sortKeysDesc() as $idPembayaran => $tipePembayaran)
                         <th class="text-end">
                             {{ cleanNumber($item->transaction->where('status', 'verify')->where('tipe_pembayaran_id', $idPembayaran)->sum('total')) }}
@@ -68,7 +141,7 @@
                     @endforeach
                 </tr>
                 <tr>
-                    <td class="bg-success fw-semibold" colspan="{{ count($data['list_tipe_pembayaran']) + 5 }}">
+                    <td style="background: #ccc;" colspan="{{ count($data['list_tipe_pembayaran']) + 5 }}">
                         Rekap Transaksi</td>
                 </tr>
                 <tr>
@@ -107,4 +180,6 @@
             </tbody>
         </table>
     </div>
-</div>
+</body>
+
+</html>

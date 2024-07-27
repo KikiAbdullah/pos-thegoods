@@ -12,6 +12,7 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Yajra\DataTables\DataTables;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class KasirController extends Controller
 {
@@ -192,6 +193,48 @@ class KasirController extends Controller
             } else {
                 return $this->redirectBackWithError($e->getMessage());
             }
+        }
+    }
+
+    public function menuoption(Request $request)
+    {
+        $data         = $request->all();
+
+        $trans      = $this->model->find($data['id']);
+
+        $button     = [];
+
+
+        switch ($trans->status) {
+            case 'closed':
+                $button['print']         = $this->generateUrl('print');
+                // $button['excel']         = $this->generateUrl('excel');
+                break;
+        }
+
+        $view         = [
+            'status'        => true,
+            'view'          => view('kasir.menuoption')->with(['id' => $data['id'], 'button' => $button])->render(),
+        ];
+
+        return response()->json($view);
+    }
+
+    public function print(Request $request, $id)
+    {
+        $kasir = $this->model->with($this->relation)->find($id);
+
+        if (!empty($kasir)) {
+            $view = [
+                'item'  => $kasir,
+                'data'  => [
+                    'list_tipe_pembayaran' => $this->listTipePembayaran(),
+                ]
+
+            ];
+
+            $pdf                    = Pdf::loadView($this->generateViewName('print'), $view);
+            return $pdf->stream();
         }
     }
 }

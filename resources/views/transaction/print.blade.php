@@ -1,7 +1,7 @@
 <html>
 
 <head>
-    <title>FORM SO</title>
+    <title>LAPORAN TRANSAKSI</title>
     <style>
         @page {
             margin: 0.2cm;
