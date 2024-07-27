@@ -25,6 +25,9 @@ class Transaction extends Model
         'customer_whatsapp',
         'customer_name',
         'customer_email',
+
+        'amount_paid',
+
         'status',
         'text_rejected',
         'created_by',
@@ -127,6 +130,12 @@ class Transaction extends Model
     public function getTanggalFormattedAttribute()
     {
         return formatDate('Y-m-d', 'd-m-Y', $this->tanggal);
+    }
+
+    public function setAmountPaidAttribute($val)
+    {
+        $val = str_replace(',', '', $val);
+        $this->attributes['amount_paid'] = $val;
     }
 
     public function getServiceTimeAttribute()

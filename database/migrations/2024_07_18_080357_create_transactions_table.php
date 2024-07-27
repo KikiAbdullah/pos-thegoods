@@ -24,6 +24,9 @@ class CreateTransactionsTable extends Migration
             $table->string('customer_whatsapp', 50)->nullable();
             $table->string('customer_name', 50)->nullable();
             $table->string('customer_email', 50)->nullable();
+
+            $table->decimal('amount_paid', 30, 2)->nullable();
+            
             $table->string('status', 20)->nullable();
             $table->tinyInteger('created_by')->nullable();
 

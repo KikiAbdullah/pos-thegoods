@@ -1,15 +1,4 @@
 {!! Form::open(['route' => $url, 'method' => 'POST', 'id' => 'l-modal-form']) !!}
-
-<div class="row mb-3">
-    <label class="col-lg-3 col-form-label text-lg-end d-none d-lg-block">Tipe Pembayaran</label>
-    <div class="col-lg-9">
-        {!! Form::select('tipe_pembayaran_id', $data['list_tipe_pembayaran'], null, [
-            'class' => 'select',
-            'placeholder' => 'Tipe Pembayaran',
-        ]) !!}
-    </div>
-</div>
-
 <div class="row mb-3">
     <label class="col-lg-3 col-form-label text-lg-end d-none d-lg-block">Cust Name</label>
     <div class="col-lg-9">

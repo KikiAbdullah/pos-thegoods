@@ -284,6 +284,19 @@
                 TransToday();
                 toggleDivs('notready', 'pos-system');
 
+                $("input.uang").keyup(function(event) {
+
+                    // skip for arrow keys
+                    if (event.which >= 37 && event.which <= 40) {
+                        event.preventDefault();
+                    }
+
+                    $(this).val(function(index, value) {
+                        value = value.replace(/,/g, '');
+                        return numberWithCommas(value);
+                    });
+                });
+
                 hTable = $('#hTable').DataTable({
                     "select": {
                         style: "single",
@@ -521,7 +534,7 @@
                 e.preventDefault();
 
                 textHtml = '{!! Form::text('qty_fix', null, [
-                    'class' => 'form-control mt-2 mb-2 field-paid',
+                    'class' => 'form-control uang mt-2 mb-2 field-paid',
                     'placeholder' => 'Nominal yang dibayarkan',
                     'autofocus' => true,
                 ]) !!}';
@@ -544,7 +557,20 @@
                     didOpen: () => {
                         // The textfield element
                         textField = Swal.getPopup().querySelector(".field-paid")
-                        textField?.focus()
+                        textField?.focus();
+
+                        $("input.uang").keyup(function(event) {
+
+                            // skip for arrow keys
+                            if (event.which >= 37 && event.which <= 40) {
+                                event.preventDefault();
+                            }
+
+                            $(this).val(function(index, value) {
+                                value = value.replace(/,/g, '');
+                                return numberWithCommas(value);
+                            });
+                        });
                     },
                     preConfirm: (value) => {
                         let paid = Swal.getPopup().querySelector(".field-paid")?.value;
@@ -555,8 +581,8 @@
                             url: $(el).data('url'),
                             data: {
                                 status: title,
-                                paid: paid,
-                                tipe_pembayara_id: tipePembayaran,
+                                amount_paid: paid,
+                                tipe_pembayaran_id: tipePembayaran,
                             },
                             dataType: "json",
                         }).done(function(data) {

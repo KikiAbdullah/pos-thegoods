@@ -402,15 +402,24 @@ class TransactionController extends Controller
 
                     //$this->sendInvoiceToWhatsapp($transaction);
 
+                    $total = $transaction->total;
+                    $amountPaid = str_replace(',', '', $data['amount_paid']);
+                    if ($amountPaid <  $total) {
+                        DB::rollback();
+
+                        return response()->json(responseFailed('Nominal yang dibayarkan kurang dari total : Rp ' . $total));
+                    }
+
+                    $kembalian = $amountPaid - $total;
+
                     $statusEdited   = 'verify';
-                    $msg            = 'Verifikasi Pembayaran pada Nomor Transaksi ' . $transaction->no;
+                    $msg            = $kembalian > 0 ? 'Kembalian : Rp' . cleanNumber($kembalian) : 'Verifikasi Pembayaran pada Nomor Transaksi ' . $transaction->no;
                     $logMsg         = 'Verifikasi Pembayaran pada Nomor Transaksi <b>' . $transaction->no . '</b>';
 
-                    $transaction->update([
-                        'status' => 'verify',
-                        'verify_at' => date('Y-m-d H:i:s'),
-                        'verify_by' => auth()->user()->id,
-                    ]);
+
+                    $data['verify_at']  = date('Y-m-d H:i:s');
+                    $data['verify_by']  = auth()->user()->id;
+                    $transaction->update($data);
                     break;
 
                 case 'rejected':

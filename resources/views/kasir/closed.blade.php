@@ -180,6 +180,11 @@
                                     <td class="bg-success fs-lg fw-semibold" colspan="7">Rekap Transaksi</td>
                                 </tr>
                                 <tr>
+                                    <th class="text-end" colspan="{{ count($data['list_tipe_pembayaran']) + 3 }}">Total
+                                        Kasir (Saldo Awal + Total Tunai)</th>
+                                    <th class="text-end">{{ cleanNumber($saldoAwal + $totalTunai) }}</th>
+                                </tr>
+                                <tr>
                                     <th class="text-end" colspan="{{ count($data['list_tipe_pembayaran']) + 3 }}">Saldo
                                         Awal Kasir</th>
                                     <th class="text-end">{{ cleanNumber($saldoAwal) }}</th>
@@ -189,22 +194,24 @@
                                         Transaksi Tunai</th>
                                     <th class="text-end">{{ cleanNumber($totalTunai) }}</th>
                                 </tr>
-                                <tr>
-                                    <th class="text-end" colspan="{{ count($data['list_tipe_pembayaran']) + 3 }}">Total
-                                        Kasir (Saldo Awal + Total Tunai)</th>
-                                    <th class="text-end">{{ cleanNumber($saldoAwal + $totalTunai) }}</th>
-                                </tr>
-                                <tr>
-                                    <th class="text-end" colspan="{{ count($data['list_tipe_pembayaran']) + 3 }}">Saldo
-                                        Akhir Tunai di Kasir</th>
-                                    <th class="text-end">{{ cleanNumber($totalTunaiDiKasir) }}</th>
-                                </tr>
-                                <tr>
-                                    <th class="text-end" colspan="{{ count($data['list_tipe_pembayaran']) + 3 }}">Selisih
-                                    </th>
-                                    <th class="text-end">{{ ($selisih > 0 ? '(+) ' : '(-) ') . cleanNumber($selisih) }}
-                                    </th>
-                                </tr>
+
+
+
+                                @if (!empty($totalTunaiDiKasir))
+                                    <tr>
+                                        <th class="text-end" colspan="{{ count($data['list_tipe_pembayaran']) + 3 }}">Saldo
+                                            Akhir Tunai di Kasir</th>
+                                        <th class="text-end">{{ cleanNumber($totalTunaiDiKasir) }}</th>
+                                    </tr>
+                                    <tr>
+                                        <th class="text-end" colspan="{{ count($data['list_tipe_pembayaran']) + 3 }}">
+                                            Selisih
+                                        </th>
+                                        <th class="text-end">
+                                            {{ ($selisih > 0 ? '(+) ' : '(-) ') . cleanNumber(abs($selisih)) }}
+                                        </th>
+                                    </tr>
+                                @endif
                             </tbody>
                         </table>
                     </div>
