@@ -20,7 +20,7 @@
         <div class="page-header-content d-lg-flex">
             <div class="d-flex">
                 <div class="page-title">
-                    <h4 class="fw-semibold">Hai {{ $data['kasir']->user->name ?? '' }},</h4>
+                    <h4 class="fw-semibold">Hai {{ $data['kasir']->createdBy->name ?? '' }},</h4>
                 </div>
 
                 <a href="#page_header"
