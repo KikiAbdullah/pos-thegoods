@@ -18,6 +18,12 @@ $(function () {
         },
     });
 
+    $(".daterange").daterangepicker({
+        locale: {
+            format: "DD/MM/YYYY",
+        },
+    });
+
     $("input.uang").keyup(function (event) {
         // skip for arrow keys
         if (event.which >= 37 && event.which <= 40) {

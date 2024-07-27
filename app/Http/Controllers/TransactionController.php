@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\LogHelper;
+use App\Http\Controllers\Traits\TransaksiTrait;
 use App\Http\Controllers\Traits\WhatsappTrait;
+use App\Models\Kasir;
 use App\Models\Master\Addon;
 use App\Models\Master\Package;
 use App\Models\Transaction;
@@ -21,6 +23,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 class TransactionController extends Controller
 {
     use WhatsappTrait;
+    use TransaksiTrait;
 
     public function __construct(Transaction $model, LogHelper $logHelper)
     {
@@ -55,6 +58,67 @@ class TransactionController extends Controller
             })
             ->addColumn('tanggal_formatted', function ($item) {
                 return $item->tanggal_formatted;
+            })
+            ->rawColumns(['status_formatted'])
+            ->toJson();
+    }
+
+    public function ajaxDataOrdered()
+    {
+
+        $kasir = Kasir::where([
+            'tanggal' => date('Y-m-d'),
+            'status'    => 'open',
+        ])->orderBy('id', 'desc')->first();
+
+
+        if ($this->withTrashed) {
+            $mapped             = $this->model->where(['kasir_id' => $kasir->id, 'status' => 'ordered'])->withTrashed();
+        } else {
+            $mapped             = $this->model->where(['kasir_id' => $kasir->id, 'status' => 'ordered']);
+        }
+
+        return DataTables::of($mapped)
+            ->addColumn('status_formatted', function ($item) {
+                return $item->status_formatted;
+            })
+            ->addColumn('tanggal_formatted', function ($item) {
+                return $item->tanggal_formatted;
+            })
+            ->rawColumns(['status_formatted'])
+            ->toJson();
+    }
+
+    public function ajaxDataToday()
+    {
+
+        $kasir = Kasir::where([
+            'tanggal' => date('Y-m-d'),
+            'status'    => 'open',
+        ])->orderBy('id', 'desc')->first();
+
+
+        if ($this->withTrashed) {
+            $mapped             = $this->model->where([
+                'kasir_id' => $kasir->id,
+                'tanggal'   => date('Y-m-d')
+            ])->where('status', '!=', 'open')->withTrashed();
+        } else {
+            $mapped             = $this->model->where([
+                'kasir_id' => $kasir->id,
+                'tanggal'   => date('Y-m-d')
+            ])->where('status', '!=', 'open');
+        }
+
+        return DataTables::of($mapped)
+            ->addColumn('status_formatted', function ($item) {
+                return $item->status_formatted;
+            })
+            ->addColumn('tanggal_formatted', function ($item) {
+                return $item->tanggal_formatted;
+            })
+            ->addColumn('total', function ($item) {
+                return cleanNumber($item->total);
             })
             ->rawColumns(['status_formatted'])
             ->toJson();
@@ -294,9 +358,8 @@ class TransactionController extends Controller
 
             switch ($data['status']) {
                 case 'ordered':
-                    $statusEdited = 'ordered';
-                    $msg = 'Pemesanan nomor transaksi ' . $transaction->no . ' telah diterima';
-                    $logMsg = 'Pemesanan nomor transaksi <b>' . $transaction->no . '</b> telah diterima';
+                    $msg = 'Pemesanan nomor Transaksi ' . $transaction->no . ' telah dibuat oleh ' . auth()->user()->name;
+                    $logMsg = 'Pemesanan nomor Transaksi <b>' . $transaction->no . '</b> telah dibuat oleh <b>' . auth()->user()->name . '</b>';
 
                     if ($transaction->packages->isEmpty()) {
                         DB::rollback();
@@ -304,34 +367,74 @@ class TransactionController extends Controller
                         return response()->json(responseFailed('Package harus diisi'));
                     }
 
+                    $transaction->update([
+                        'status' => 'ordered',
+                        'ordered_at' => date('Y-m-d H:i:s'),
+                        'ordered_by' => auth()->user()->id,
+                    ]);
+
                     break;
 
                 case 'payment':
-                    $statusEdited = 'payment';
-                    $msg = 'Nomor transaksi ' . $transaction->no . ' melakukan pembayaran';
-                    $logMsg = 'Nomor transaksi <b>' . $transaction->no . '</b> melakukan pembayaran';
+                    $msg            = 'Nomor Transaksi ' . $transaction->no . ' dilanjutkan ke pembayaran oleh ' . auth()->user()->name;
+                    $logMsg         = 'Nomor Transaksi <b>' . $transaction->no . '</b> dilanjutkan ke pembayaran oleh <b>' . auth()->user()->name . '</b>';
+
+
+                    foreach ($transaction->packages as $package) {
+                        if (empty($package->url)) {
+                            DB::rollback();
+
+                            return response()->json(responseFailed('Pastikan URL Google Drive telah diinputkan'));
+                        }
+                    }
+
+                    $transaction->update([
+                        'status' => 'payment',
+                        'payment_at' => date('Y-m-d H:i:s'),
+                        'payment_by' => auth()->user()->id,
+                    ]);
+
                     break;
 
                 case 'verify':
 
-                    $invoicePdf     = $this->makeInvoicePdf();
+                    $this->saveTrans($transaction);
 
-                    $subject        = "Hai Kak " . ucwords($transaction->customer_name);
-                    $textWa         = $this->textWhatsapp($transaction);
-                    $footer         = "\nBest Regards,\nThe Good Studios";
+                    //$this->sendInvoiceToWhatsapp($transaction);
 
-                    $this->sendWhatsapp('085155300552', $subject, $textWa, $footer);
-                    $this->sendWhatsappAttachment('085155300552', $subject, $textWa, $footer, public_path('storage/invoice/' . $invoicePdf));
+                    $statusEdited   = 'verify';
+                    $msg            = 'Verifikasi Pembayaran pada Nomor Transaksi ' . $transaction->no;
+                    $logMsg         = 'Verifikasi Pembayaran pada Nomor Transaksi <b>' . $transaction->no . '</b>';
 
-                    $statusEdited = 'verify';
-                    $msg = 'Nomor transaksi ' . $transaction->no . ' berhasil diverifikasi';
-                    $logMsg = 'Nomor transaksi <b>' . $transaction->no . '</b> berhasil diverifikasi';
+                    $transaction->update([
+                        'status' => 'verify',
+                        'verify_at' => date('Y-m-d H:i:s'),
+                        'verify_by' => auth()->user()->id,
+                    ]);
+                    break;
+
+                case 'rejected':
+
+                    if (empty($data['keterangan'])) {
+                        DB::rollback();
+
+                        return response()->json(responseFailed('Keterangan harus diisi'));
+                    }
+
+
+                    $this->deleteTrans($transaction);
+
+                    $msg            = 'Pembatalan pada Nomor transaksi ' . $transaction->no;
+                    $logMsg         = 'Pembatalan pada Nomor transaksi <b>' . $transaction->no . '</b>';
+
+                    $transaction->update([
+                        'status' => 'rejected',
+                        'text_rejected' => $data['keterangan'],
+                        'rejected_at' => date('Y-m-d H:i:s'),
+                        'rejected_by' => auth()->user()->id,
+                    ]);
                     break;
             }
-
-            $transaction->update([
-                'status' => $statusEdited,
-            ]);
 
             $this->logHelper->storeLogMsg($logMsg, 'add');
 
@@ -447,6 +550,18 @@ class TransactionController extends Controller
 
 
     ///WHATSAPP TEXT
+    public function sendInvoiceToWhatsapp($trans)
+    {
+        $invoicePdf     = $this->makeInvoicePdf();
+
+        $subject        = "Hai Kak " . ucwords($trans->customer_name);
+        $textWa         = $this->textWhatsapp($trans);
+        $footer         = "\nBest Regards,\nThe Good Studios";
+
+        $this->sendWhatsapp('085155300552', $subject, $textWa, $footer);
+        $this->sendWhatsappAttachment('085155300552', $subject, $textWa, $footer, public_path('storage/invoice/' . $invoicePdf));
+    }
+
     public function textWhatsapp($trans)
     {
         $text = "";

@@ -12,22 +12,19 @@ trait TransaksiTrait
         try {
             DB::beginTransaction();
 
-            ///SAVE INV TRANS
-            foreach ($trans->lines as $line) {
-                InventoriTrans::create([
-                    'tanggal'               => $trans->tanggal . ' ' . date('H:i:s'),
-                    'tipe'                  => 'TR',
-                    'transaction_id'        => $trans->id,
-                    'trans_no'              => $trans->no,
-                    'customer_name'         => $trans->customer_name,
-                    'total'                 => $trans->total,
-                    'keterangan'            => $trans->text,
-                    'created_by'            => auth()->user()->id,
-                    'created_at'            => date('Y-m-d H:i:s'),
-                    'updated_at'            => date('Y-m-d H:i:s'),
-                ]);
-            }
-            ///SAVE INV TRANS
+            InventoriTrans::create([
+                'tanggal'               => $trans->tanggal . ' ' . date('H:i:s'),
+                'tipe'                  => 'TR',
+                'transaction_id'        => $trans->id,
+                'trans_no'              => $trans->no,
+                'customer_name'         => $trans->customer_name,
+                'total'                 => $trans->total,
+                'keterangan'            => $trans->text,
+                'created_by'            => auth()->user()->id,
+                'created_at'            => date('Y-m-d H:i:s'),
+                'updated_at'            => date('Y-m-d H:i:s'),
+            ]);
+
             DB::commit();
 
             $response           = [

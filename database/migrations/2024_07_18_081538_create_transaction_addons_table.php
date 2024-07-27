@@ -16,11 +16,11 @@ class CreateTransactionAddonsTable extends Migration
         Schema::create('transaction_addons', function (Blueprint $table) {
             $table->id();
             $table->bigInteger('transaction_id')->unsigned();
-            $table->bigInteger('addon_id')->unsigned();
+            $table->integer('addon_id')->unsigned();
             $table->string('addon_name')->nullable();
             $table->decimal('qty')->nullable();
             $table->decimal('harga', 30, 2)->nullable();
-            $table->string('created_by', 50)->nullable();
+            $table->tinyInteger('created_by')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

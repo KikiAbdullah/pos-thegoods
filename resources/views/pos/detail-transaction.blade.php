@@ -1,12 +1,39 @@
+<div class="d-flex flex-wrap mb-4 wmin-lg-400">
+    <ul class="list list-unstyled mb-0">
+        <li>Tanggal:</li>
+        <li>Customer:</li>
+        <li>Whatsapp:</li>
+        <li>Email:</li>
+        <li>Tipe Pembayaran:</li>
+        <li>Keterangan:</li>
+        @if ($item->status == 'rejected')
+            <li>Keterangan Reject:</li>
+        @endif
+        <li>Status:</li>
+    </ul>
+
+    <ul class="list list-unstyled text-end mb-0 ms-auto">
+        <li><span class="fw-semibold">{{ formatDate('Y-m-d', 'd/m/Y', $item->tanggal) }}</span></li>
+        <li><span class="fw-semibold">{{ $item->customer_name ?? '-' }}</span></li>
+        <li>{{ $item->customer_whatsapp ?? '-' }}</li>
+        <li>{{ $item->customer_email ?? '-' }}</li>
+        <li>{{ $item->tipePembayaran->name ?? '-' }}</li>
+        <li>{{ $item->text ?? '-' }}</li>
+        @if ($item->status == 'rejected')
+            <li>{{ $item->text_rejected ?? '-' }}</li>
+        @endif
+        <li>{!! $item->status_formatted !!}</li>
+    </ul>
+</div>
+
 <div class="table-responsive">
-    <table class="table table-xxs table-striped" id="ctable">
+    <table class="table table-xxs table-bordered" id="ctable">
         <thead>
             <tr>
                 <th class="text-center" width="3%">#</th>
                 <th>Package Name</th>
                 <th class="text-end">Qty</th>
                 <th class="text-end" width="15%">Harga</th>
-                <th width="3%"></th>
             </tr>
         </thead>
         <tbody id="tbody">
@@ -20,24 +47,16 @@
                             : '' !!}
                     </td>
                     <td class="text-end">{{ cleanNumber($package->harga) }}</td>
-                    @if ($item->status == 'open' || $item->status == 'payment')
-                        <td>
-                            <a href="#!"
-                                onclick="RemoveLines('{{ route('transaction.package-delete', $package->id) }}', event)">
-                                <i class="ph-minus-circle text-danger"></i>
-                            </a>
-                        </td>
-                    @endif
                 </tr>
             @empty
                 <tr>
-                    <td colspan="5" class="text-center">Tidak Ada</td>
+                    <td colspan="4" class="text-center">Tidak Ada</td>
                 </tr>
             @endforelse
             @if ($item->addons->isNotEmpty())
                 <tr>
                     <th class="text-center" width="3%">#</th>
-                    <th colspan="5">Add On</th>
+                    <th colspan="4">Add On</th>
                 </tr>
                 @forelse ($item->addons as $addon)
                     <tr>
@@ -45,18 +64,10 @@
                         <td>{{ $addon->addon_name ?? '-' }}</td>
                         <td class="text-end">{{ cleanNumber($addon->qty) ?? '-' }}</td>
                         <td class="text-end">{{ cleanNumber($addon->harga) }}</td>
-                        @if ($item->status == 'open' || $item->status == 'payment')
-                            <td>
-                                <a href="#!"
-                                    onclick="RemoveLines('{{ route('pos.addon-delete', $addon->id) }}', event)">
-                                    <i class="ph-minus-circle text-danger"></i>
-                                </a>
-                            </td>
-                        @endif
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5" class="text-center">Tidak Ada</td>
+                        <td colspan="4" class="text-center">Tidak Ada</td>
                         @if ($item->status == 'open' || $item->status == 'payment')
                             <td></td>
                         @endif
@@ -66,39 +77,22 @@
             <tr>
                 <th class="text-end" colspan="3">Total</th>
                 <th class="text-end">{{ cleanNumber($grandTotal) ?? 0 }}</th>
-                <th></th>
             </tr>
         </tbody>
     </table>
 </div>
 
 @if ($grandTotal > 0)
-
-    @if ($item->status == 'open')
-        <div class="text-center m-2">
+    <div class="d-flex justify-content-end align-items-center mt-4">
+        @if (!in_array($item->status, ['open', 'verify', 'rejected']))
             <button type="button" data-url="{{ route($button['change-status'], $id) }}"
-                onclick="BtnOption('ordered',this, event)"
-                class="btn btn-success btn-labeled btn-labeled-start btn-lg w-100">
+                onclick="BtnOptionReject('rejected',this, event)"
+                class="btn btn-danger btn-labeled btn-labeled-start btn-lg w-100">
                 <span class="btn-labeled-icon bg-black bg-opacity-20">
-                    <i class="ph-paper-plane-tilt ph-lg"></i>
+                    <i class="ph-x-circle ph-lg"></i>
                 </span>
-                Lanjutkan Pemesanan
+                Batalkan Transaksi
             </button>
-        </div>
-    @endif
-
-    @if ($item->status == 'payment')
-        <div class="text-center m-2">
-            <button type="button" data-url="{{ route($button['change-status'], $id) }}"
-                onclick="BtnOptionVerify('verify',this, event)"
-                class="btn btn-success btn-labeled btn-labeled-start btn-lg w-100">
-                <span class="btn-labeled-icon bg-black bg-opacity-20">
-                    <i class="ph-check ph-lg"></i>
-                </span>
-                Verifikasi Pembayaran
-            </button>
-        </div>
-    @endif
-
-
+        @endif
+    </div>
 @endif

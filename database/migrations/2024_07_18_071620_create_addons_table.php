@@ -18,7 +18,7 @@ class CreateAddonsTable extends Migration
             $table->string('name')->nullable();
             $table->text('description')->nullable();
             $table->decimal('harga', 30, 2)->nullable();
-            $table->bigInteger('created_by')->unsigned()->nullable();
+            $table->tinyInteger('created_by')->nullable();
             $table->tinyInteger('status')->default(1)->comment('1=active,0=non');
             $table->timestamps();
             $table->softDeletes();

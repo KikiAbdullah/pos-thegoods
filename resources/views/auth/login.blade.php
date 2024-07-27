@@ -26,7 +26,8 @@
 
 </head>
 
-<body>
+<body
+    style="background-image: url('app_local/img/bg.png'); background-position: center; background-repeat: no-repeat; background-size: cover;">
 
     <!-- Page content -->
     <div class="page-content">
@@ -45,7 +46,7 @@
                     <div class="card mb-0">
                         <div class="card-body">
                             <div class="text-center mt-3 mb-3">
-                                <span class="{{ env('APP_WARNA') }} logo-text logo-lg fw-semibold mb-6">{{ env('APP_NAME') }}</span>
+                                <img src="{{ asset('app_local/img/logo.png') }}" class="img-fluid" alt="">
                             </div>
                             <div class="text-center mb-3 fw-semibold">LOGIN PAGE</div>
                             <div class="text-center mb-3">
@@ -61,7 +62,12 @@
                             <div class="mb-3">
                                 <label class="form-label">Username</label>
                                 <div class="form-control-feedback form-control-feedback-start">
-                                    {!! Form::text('username', null, ['class' => 'form-control', 'placeholder' => 'Username', 'autofocus' => true, 'onfocus' => 'this.selectionStart = this.selectionEnd = this.value.length;']) !!}
+                                    {!! Form::text('username', null, [
+                                        'class' => 'form-control',
+                                        'placeholder' => 'Username',
+                                        'autofocus' => true,
+                                        'onfocus' => 'this.selectionStart = this.selectionEnd = this.value.length;',
+                                    ]) !!}
                                     <div class="form-control-feedback-icon">
                                         <i class="ph-user-circle text-muted"></i>
                                     </div>
@@ -71,7 +77,8 @@
                             <div class="mb-3">
                                 <label class="form-label">Password</label>
                                 <div class="form-control-feedback form-control-feedback-start">
-                                    <input type="password" name="password" class="form-control" placeholder="•••••••••••">
+                                    <input type="password" name="password" class="form-control"
+                                        placeholder="•••••••••••">
                                     <div class="form-control-feedback-icon">
                                         <i class="ph-lock text-muted"></i>
                                     </div>
@@ -83,15 +90,11 @@
                                     <input type="checkbox" name="remember" class="form-check-input" checked>
                                     <span class="form-check-label">Remember</span>
                                 </label>
-
-                                <a href="login_password_recover.html" class="ms-auto">Forgot password?</a>
                             </div>
 
                             <div class="mb-3">
                                 <button type="submit" class="btn btn-primary w-100">Sign in</button>
                             </div>
-                            <span class="form-text text-center text-muted">By continuing, you're confirming that you've read our <a href="#">Terms &amp; Conditions</a> and <a
-                                    href="#">Cookie Policy</a></span>
                         </div>
                     </div>
                     {!! Form::close() !!}

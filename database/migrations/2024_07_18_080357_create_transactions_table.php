@@ -15,13 +15,30 @@ class CreateTransactionsTable extends Migration
     {
         Schema::create('transactions', function (Blueprint $table) {
             $table->id();
+            $table->bigInteger('kasir_id')->nullable();
+            $table->bigInteger('tipe_pembayaran_id')->nullable();
             $table->string('no', 20)->nullable();
             $table->date('tanggal')->nullable();
             $table->string('text')->nullable();
+            $table->string('text_rejected')->nullable();
             $table->string('customer_whatsapp', 50)->nullable();
             $table->string('customer_name', 50)->nullable();
+            $table->string('customer_email', 50)->nullable();
             $table->string('status', 20)->nullable();
-            $table->string('created_by', 50)->nullable();
+            $table->tinyInteger('created_by')->nullable();
+
+            $table->dateTime('rejected_at')->nullable();
+            $table->tinyInteger('rejected_by')->nullable();
+
+            $table->dateTime('ordered_at')->nullable();
+            $table->tinyInteger('ordered_by')->nullable();
+
+            $table->dateTime('payment_at')->nullable();
+            $table->tinyInteger('payment_by')->nullable();
+
+            $table->dateTime('verify_at')->nullable();
+            $table->tinyInteger('verify_by')->nullable();
+
             $table->timestamps();
             $table->softDeletes();
         });

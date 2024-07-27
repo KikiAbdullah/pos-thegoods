@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateInventoriTransTable extends Migration
+class CreateTipePembayaransTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,16 +13,11 @@ class CreateInventoriTransTable extends Migration
      */
     public function up()
     {
-        Schema::create('inventori_trans', function (Blueprint $table) {
+        Schema::create('tipe_pembayarans', function (Blueprint $table) {
             $table->id();
-            $table->date('tanggal');
-            $table->string('tipe');
-            $table->bigInteger('transaction_id')->unsigned();
-            $table->string('trans_no')->nullable();
-            $table->string('customer_name')->nullable();
-            $table->decimal('total')->nullable();
-            $table->text('keterangan')->nullable();
+            $table->string('name')->nullable();
             $table->tinyInteger('created_by')->nullable();
+            $table->tinyInteger('status')->default(1)->comment('1=active,0=non');
             $table->softDeletes();
             $table->timestamps();
         });
@@ -35,6 +30,6 @@ class CreateInventoriTransTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('inventori_trans');
+        Schema::dropIfExists('tipe_pembayarans');
     }
 }

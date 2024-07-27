@@ -189,6 +189,52 @@ const SelectRemoteData = (elClass, url, elParent = "") => {
     });
 };
 
+const SelectRemoteDataCustomer = (elClass, url, elParent = "") => {
+    $(elClass).select2({
+        dropdownParent: elParent != "" ? $(elParent) : null,
+        allowClear: true,
+        ajax: {
+            url: url,
+            dataType: "json",
+            delay: 250,
+            data: function (params) {
+                return {
+                    q: params.term,
+                    page: params.page,
+                };
+            },
+            processResults: function (data, params) {
+                params.page = params.page || 1;
+
+                return {
+                    results: data.results,
+                    pagination: data.pagination,
+                };
+            },
+            cache: true,
+        },
+        escapeMarkup: function (markup) {
+            return markup;
+        },
+        dropdownCssClass: "tfont",
+        minimumInputLength: -1,
+        templateResult: (data, container) => {
+            var markup =
+                '<div class="clearfix">' +
+                "<span class='fw-semibold'>" +
+                data.text +
+                "</span>" +
+                "<p>" +
+                data.no +
+                "</p>" +
+                "</div>";
+
+            return markup;
+        },
+        // templateSelection: formatRepoItemsSelection
+    });
+};
+
 const SelectData = (elClass, url) => {
     $.ajax({
         url: url,

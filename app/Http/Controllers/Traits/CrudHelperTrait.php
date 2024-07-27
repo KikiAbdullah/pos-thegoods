@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace App\Http\Controllers\Traits;
 
@@ -6,15 +6,16 @@ use Intervention\Image\Facades\Image;
 use File;
 use Carbon\Carbon;
 
-trait CrudHelperTrait {
-	
+trait CrudHelperTrait
+{
+
 	// Data Things
 	public function indexData($type)
 	{
-		if($type){
-			return $this->model->withTrashed()->with($this->relation)->orderBy('id','DESC')->get();
-		}else{
-			return $this->model->with($this->relation)->orderBy('id','DESC')->get();
+		if ($type) {
+			return $this->model->withTrashed()->with($this->relation)->orderBy('id', 'DESC')->get();
+		} else {
+			return $this->model->with($this->relation)->orderBy('id', 'DESC')->get();
 		}
 	}
 	// 
@@ -22,28 +23,37 @@ trait CrudHelperTrait {
 	// Generate things
 	public function generateViewName($type)
 	{
-		if($this->folder!=""){
-			$view_name = $this->folder.'.'.$this->generateFolderName().'.'.$type;
-		}else{
-			$view_name = $this->generateFolderName().'.'.$type;
+		$type = $this->convertToSnakeCase($type);
+
+		if ($this->folder != "") {
+			$view_name = $this->folder . '.' . $this->generateFolderName() . '.' . $type;
+		} else {
+			$view_name = $this->generateFolderName() . '.' . $type;
 		}
 
 		return $view_name;
 	}
 
+	private function convertToSnakeCase($string)
+	{
+		// Ubah huruf besar menjadi huruf kecil dan tambahkan underscore sebelum huruf besar
+		$snake_case_string = strtolower(preg_replace('/([a-z])([A-Z])/', '$1-$2', $string));
+		return $snake_case_string;
+	}
+
 	public function generateFolderName()
 	{
 		$current_title = strtolower($this->title);
-		
+
 		return str_replace(' ', '_', $current_title);
 	}
 
 	public function generateUrl($type)
 	{
-		if($this->folder!=""){
-			$url = $this->folder.'.'.$this->makeDashCase(strtolower($this->title)).'.'.$type;
-		}else{
-			$url = $this->makeDashCase(strtolower($this->title)).'.'.$type;
+		if ($this->folder != "") {
+			$url = $this->folder . '.' . $this->makeDashCase(strtolower($this->title)) . '.' . $type;
+		} else {
+			$url = $this->makeDashCase(strtolower($this->title)) . '.' . $type;
 		}
 
 		return $url;
@@ -77,20 +87,20 @@ trait CrudHelperTrait {
 		$message = null;
 		switch ($type) {
 			case 'store':
-					$message = 'Data Added Successfully';
+				$message = 'Data Added Successfully';
 				break;
 			case 'update':
-					$message = 'Data Saved Successfully';
+				$message = 'Data Saved Successfully';
 				break;
 			case 'destroy':
-					$message = 'Data Deleted Successfully';
+				$message = 'Data Deleted Successfully';
 				break;
 		}
-		if($isAjax){
+		if ($isAjax) {
 			return $message;
-		}else{
-		return redirect()->route($this->generateUrl('index'))
-						 ->withSuccess($message);
+		} else {
+			return redirect()->route($this->generateUrl('index'))
+				->withSuccess($message);
 		}
 	}
 
@@ -99,10 +109,16 @@ trait CrudHelperTrait {
 		return redirect()->back()->withInput()->withErrors($message);
 	}
 
+
+	public function redirectBackWithSuccess($message)
+	{
+		return redirect()->back()->withInput()->withSuccess($message);
+	}
+
 	public function redirectWithSessionFlash($message)
 	{
 		return redirect()->route($this->generateUrl('index'))
-						 ->with($message);
+			->with($message);
 	}
 	// 
 
@@ -110,19 +126,19 @@ trait CrudHelperTrait {
 	public function completeUrl()
 	{
 		return [
-    			'index'		=> $this->generateUrl('index'),
-    			'destroy'	=> $this->generateUrl('destroy'),
-    			'create'	=> $this->generateUrl('create'),
-    			'edit'		=> $this->generateUrl('edit'),
-    			'show'		=> $this->generateUrl('show'),
-    	];
+			'index'		=> $this->generateUrl('index'),
+			'destroy'	=> $this->generateUrl('destroy'),
+			'create'	=> $this->generateUrl('create'),
+			'edit'		=> $this->generateUrl('edit'),
+			'show'		=> $this->generateUrl('show'),
+		];
 	}
 
 	public function getRequest()
 	{
 		if (method_exists($this, 'customRequest')) {
 			$request 	   = $this->customRequest(app($this->model_request));
-		}else {
+		} else {
 			$model_request = app($this->model_request);
 			$request 	   = $model_request->all();
 		}
@@ -131,10 +147,10 @@ trait CrudHelperTrait {
 	}
 
 	public function validationRelation($model)
-    {
-    	$response = [];
+	{
+		$response = [];
 
-		foreach($this->relation as $relasi) {
+		foreach ($this->relation as $relasi) {
 
 			$check = $this->checkArray($model->$relasi->toArray());
 
@@ -142,79 +158,71 @@ trait CrudHelperTrait {
 
 				$response = [
 					'icon'			=> 'error',
-					'message'		=> 'Data '.class_basename($model).' digunakan di '.$this->camelCaseToSpace($relasi),
+					'message'		=> 'Data ' . class_basename($model) . ' digunakan di ' . $this->camelCaseToSpace($relasi),
 				];
-	
 			}
-
 		}
 
 		return $response;
-    }
+	}
 
-    public function camelCaseToSpace($relasi) 
-    {
-    	$kata 	= preg_replace('/(?<=\\w)(?=[A-Z])/'," $1", $relasi); 
-    	
-    	$string = trim($kata);
+	public function camelCaseToSpace($relasi)
+	{
+		$kata 	= preg_replace('/(?<=\\w)(?=[A-Z])/', " $1", $relasi);
 
-    	return ucwords($string);
-    }
+		$string = trim($kata);
 
-    public function checkArray($model)
-    {
-    	$result = null;
+		return ucwords($string);
+	}
 
-    	if (count($model) == count($model, COUNT_RECURSIVE)) {
+	public function checkArray($model)
+	{
+		$result = null;
 
-    		$result = false;
-    	
-    	}else {
+		if (count($model) == count($model, COUNT_RECURSIVE)) {
 
-    		$result = true;
-    	
-    	}
+			$result = false;
+		} else {
 
-    	return $result;
-    }
+			$result = true;
+		}
+
+		return $result;
+	}
 
 	public function saveFoto($file, $lokasi)
-    {
-		$filename=null;
+	{
+		$filename = null;
 
-        if(!empty($file)) {
-            if (!File::isDirectory(storage_path().'/app/public/'.$lokasi)) {
-                File::makeDirectory(storage_path().'/app/public/'.$lokasi, 0777, true);
-            }
+		if (!empty($file)) {
+			if (!File::isDirectory(storage_path() . '/app/public/' . $lokasi)) {
+				File::makeDirectory(storage_path() . '/app/public/' . $lokasi, 0777, true);
+			}
 
-            if(substr($file->getMimeType(), 0, 5) == 'image') {
-	            if (!empty($file)) {
-	                $extension  = $file->getClientOriginalExtension();
-	                $filename   = md5($file->getFilename().Carbon::now()).'.'.$extension;
+			if (substr($file->getMimeType(), 0, 5) == 'image') {
+				if (!empty($file)) {
+					$extension  = $file->getClientOriginalExtension();
+					$filename   = md5($file->getFilename() . Carbon::now()) . '.' . $extension;
 
-	                $location   = storage_path().'/app/public/'.$lokasi.'/'.$filename;
-	                Image::make($file)->save($location);
+					$location   = storage_path() . '/app/public/' . $lokasi . '/' . $filename;
+					Image::make($file)->save($location);
+				}
+			} else {
+				if (!empty($file)) {
+					$extension  = $file->getClientOriginalExtension();
+					$filename   = md5($file->getFilename() . Carbon::now()) . '.' . $extension;
 
-	            }
-            }else {
-            	if (!empty($file)) {
-	            	$extension  = $file->getClientOriginalExtension();
-	            	$filename   = md5($file->getFilename().Carbon::now()).'.'.$extension;
+					$file->storeAs('public/' . $lokasi, $filename);
+				}
+			}
+		}
 
-	            	$file->storeAs('public/'.$lokasi, $filename);
+		return $filename;
+	}
 
-	            }
-            }
-
-        }
-
-        return $filename;
-    }
-
-    public function delImage($filename, $lokasi)
-    {
-        $path = storage_path().'/app/public/'.$lokasi.'/';
-        return File::delete($path.$filename);
-    }
-
+	public function delImage($filename, $lokasi)
+	{
+		$path = storage_path() . '/app/public/' . $lokasi . '/';
+		return File::delete($path . $filename);
+	}
 }

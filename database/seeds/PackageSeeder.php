@@ -2,6 +2,7 @@
 
 use App\Models\Master\Addon;
 use App\Models\Master\Package;
+use App\Models\Master\TipePembayaran;
 use Illuminate\Database\Seeder;
 
 class PackageSeeder extends Seeder
@@ -13,6 +14,19 @@ class PackageSeeder extends Seeder
      */
     public function run()
     {
+        $tipe_pembayaran = [
+            [
+                'name' => 'Tunai',
+                'created_by' => 1,
+            ],
+            [
+                'name' => 'Non Tunai',
+                'created_by' => 1,
+            ],
+        ];
+
+        TipePembayaran::insert($tipe_pembayaran);
+
         $data = [
             [
                 'name' => 'Basic Self Studio',

@@ -16,11 +16,11 @@ class CreateTransactionPackagesTable extends Migration
         Schema::create('transaction_packages', function (Blueprint $table) {
             $table->id();
             $table->bigInteger('transaction_id')->unsigned();
-            $table->bigInteger('package_id')->unsigned();
+            $table->integer('package_id')->unsigned();
             $table->string('package_name')->nullable();
             $table->decimal('harga', 30, 2)->nullable();
             $table->text('url')->nullable();
-            $table->string('created_by', 50)->nullable();
+            $table->tinyInteger('created_by')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

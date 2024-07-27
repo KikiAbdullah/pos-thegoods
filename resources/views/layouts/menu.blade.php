@@ -21,26 +21,69 @@
                     </a>
                 </li>
 
-                <li class="nav-item">
-                    <a href="{{ route('pos.index') }}"
-                        class="navbar-nav-link rounded {{ $title == 'POS' ? 'active' : '' }}">
-                        <i class="ph-notepad me-2"></i>
-                        POS
-                    </a>
-                </li>
+                @canany(['pos_access', 'operator_access'])
+                    <li class="nav-item nav-item-dropdown-xl dropdown">
+                        <a href="#"
+                            class="navbar-nav-link dropdown-toggle rounded {{ in_array($title, ['POS', 'Operator']) ? 'active' : '' }}"
+                            data-bs-toggle="dropdown">
+                            <i class="ph-squares-four  me-2"></i>
+                            Operation
+                        </a>
 
-                @can('transaction_view')
+                        <div class="dropdown-menu">
+                            <div class="dropdown-header">General</div>
+                            @can('pos_access')
+                                <a href="{{ route('pos.index') }}" class="dropdown-item {{ $title == 'POS' ? 'active' : '' }}">
+                                    <i class="ph-notepad me-2"></i>
+                                    POS
+                                </a>
+                            @endcan
+                            @can('operator_access')
+                                <a href="{{ route('operator.index') }}"
+                                    class="dropdown-item {{ $title == 'Operator' ? 'active' : '' }}">
+                                    <i class="ph-identification-badge me-2"></i>
+                                    Operator
+                                </a>
+                            @endcan
+                        </div>
+                    </li>
+                @endcanany
+
+                @can('kasir_view')
                     <li class="nav-item">
-                        <a href="{{ route('transaction.index') }}"
-                            class="navbar-nav-link rounded {{ $title == 'Transaction' ? 'active' : '' }}">
-                            <i class="ph-notepad me-2"></i>
-                            Transaction
+                        <a href="{{ route('kasir.index') }}"
+                            class="navbar-nav-link rounded {{ $title == 'Kasir' ? 'active' : '' }}">
+                            <i class="ph-scroll  me-2"></i>
+                            Kasir
                         </a>
                     </li>
                 @endcan
 
+                @canany(['report_transaksi'])
+                    <li class="nav-item nav-item-dropdown-xl dropdown">
+                        <a href="#"
+                            class="navbar-nav-link dropdown-toggle rounded {{ in_array($title, ['Laporan Transaksi']) ? 'active' : '' }}"
+                            data-bs-toggle="dropdown">
+                            <i class="ph-files me-2"></i>
+                            Report
+                        </a>
 
-                @canany(['master_package', 'master_addon'])
+                        <div class="dropdown-menu">
+                            <div class="dropdown-header">Report</div>
+                            @can('report_transaksi')
+                                <a href="{{ route('report.transaksi.index') }}"
+                                    class="dropdown-item {{ $title == 'Laporan Transaksi' ? 'active' : '' }}">
+                                    <i class="ph-files me-2"></i>
+                                    Laporan Transaksi
+                                </a>
+                            @endcan
+
+                        </div>
+                    </li>
+                @endcanany
+
+
+                @canany(['master_package', 'master_addon', 'master_tipe_pembayaran'])
                     <li class="nav-item nav-item-dropdown-xl dropdown">
                         <a href="#"
                             class="navbar-nav-link dropdown-toggle rounded {{ in_array($title, ['Package', 'Addon']) ? 'active' : '' }}"
@@ -65,43 +108,52 @@
                                     Add-on
                                 </a>
                             @endcan
+                            @can('master_tipe_pembayaran')
+                                <a href="{{ route('master.tipe-pembayaran.index') }}"
+                                    class="dropdown-item {{ $title == 'Tipe Pembayaran' ? 'active' : '' }}">
+                                    <i class="ph-credit-card me-2"></i>
+                                    Tipe Pembayaran
+                                </a>
+                            @endcan
                         </div>
                     </li>
                 @endcanany
 
+                @canany(['view_permimssions', 'view_roles', 'view_users'])
+                    <li class="nav-item nav-item-dropdown-xl dropdown">
+                        <a href="#"
+                            class="navbar-nav-link dropdown-toggle rounded {{ in_array($title, ['Permissions', 'Roles', 'User']) ? 'active' : '' }}"
+                            data-bs-toggle="dropdown">
+                            <i class="ph-gear me-2"></i>
+                            Setup
+                        </a>
 
-                <li class="nav-item nav-item-dropdown-xl dropdown">
-                    <a href="#"
-                        class="navbar-nav-link dropdown-toggle rounded {{ in_array($title, ['Permissions', 'Roles', 'User']) ? 'active' : '' }}"
-                        data-bs-toggle="dropdown">
-                        <i class="ph-gear me-2"></i>
-                        Setup
-                    </a>
+                        <div class="dropdown-menu">
+                            <div class="dropdown-header">Access Control</div>
+                            @can('view_permimssions')
+                                <a href="{{ route('permission') }}"
+                                    class="dropdown-item {{ $title == 'Permissions' ? 'active' : '' }}">
+                                    <i class="ph-gear-six me-2"></i>
+                                    Permissions
+                                </a>
+                            @endcan
+                            @can('view_roles')
+                                <a href="{{ route('role') }}" class="dropdown-item {{ $title == 'Roles' ? 'active' : '' }}">
+                                    <i class="ph-user-gear me-2"></i>
+                                    Roles
+                                </a>
+                            @endcan
+                            @can('view_users')
+                                <a href="{{ route('user-setup.user.index') }}"
+                                    class="dropdown-item {{ $title == 'User' ? 'active' : '' }}">
+                                    <i class="ph-users me-2"></i>
+                                    Users
+                                </a>
+                            @endcan
+                        </div>
+                    </li>
+                @endcanany
 
-                    <div class="dropdown-menu">
-                        <div class="dropdown-header">Access Control</div>
-                        @can('view_permimssions')
-                            <a href="{{ route('permission') }}"
-                                class="dropdown-item {{ $title == 'Permissions' ? 'active' : '' }}">
-                                <i class="ph-gear-six me-2"></i>
-                                Permissions
-                            </a>
-                        @endcan
-                        @can('view_roles')
-                            <a href="{{ route('role') }}" class="dropdown-item {{ $title == 'Roles' ? 'active' : '' }}">
-                                <i class="ph-user-gear me-2"></i>
-                                Roles
-                            </a>
-                        @endcan
-                        @can('view_users')
-                            <a href="{{ route('user-setup.user.index') }}"
-                                class="dropdown-item {{ $title == 'User' ? 'active' : '' }}">
-                                <i class="ph-users me-2"></i>
-                                Users
-                            </a>
-                        @endcan
-                    </div>
-                </li>
 
             </ul>
         </div>

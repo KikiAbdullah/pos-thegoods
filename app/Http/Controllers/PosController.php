@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Helpers\LogHelper;
 use App\Http\Controllers\Traits\WhatsappTrait;
+use App\Models\Kasir;
 use App\Models\Master\Addon;
 use App\Models\Master\Package;
 use App\Models\Transaction;
@@ -31,12 +32,32 @@ class PosController extends Controller
 
     public function formData()
     {
+        $kasir = Kasir::where([
+            'tanggal' => date('Y-m-d'),
+            'status'    => 'open',
+        ])->orderBy('id', 'desc')->first();
+
         return array(
-            'list_package'   => $this->listPackageData(),
-            'list_addon'    => $this->listAddonData(),
-            'list_customer_today' => $this->listCustomerToday(),
-            'list_transaction_today' => $this->listTransProcessToday(),
+            'list_package'              => $this->listPackageData(),
+            'list_addon'                => $this->listAddonData(),
+            'list_transaction_today'    => $this->listTransProcessToday(),
+            'list_tipe_pembayaran'     => $this->listTipePembayaran(),
+            'kasir'                     => $kasir,
         );
+    }
+
+    public function index(Request $request)
+    {
+        $view  = [
+            'title'             => $this->title,
+            'subtitle'          => $this->subtitle,
+            'folder'            => $this->folder ?? '',
+            'items'             => method_exists($this, 'ajaxData') ? null : $this->indexData($this->withTrashed),
+            'url'               => array_merge(['store' => $this->generateUrl('store'), 'edit' => $this->generateUrl('edit'), 'destroy' => $this->generateUrl('destroy'), 'foto' => $this->generateUrl('foto')], $this->completeUrl()),
+            'data'              => method_exists($this, 'formData') ? $this->formData() : null,
+            'form'              => $this->generateViewName('form'),
+        ];
+        return view($this->generateViewName(__FUNCTION__))->with($view);
     }
 
     public function getTransaction(Request $request)
@@ -47,6 +68,30 @@ class PosController extends Controller
 
         if ($trans) {
             return response()->json(responseSuccess($trans));
+        }
+
+        return response()->json(responseFailed());
+    }
+
+    public function detailTransaction(Request $request)
+    {
+        $data  = $request->all();
+
+        $trans = Transaction::find($data['id']);
+
+        if ($trans) {
+
+            $data['item']       = $trans;
+            $data['grandTotal'] = $trans->packages->sum('harga') + $trans->addons->sum('total');
+            $data['button']             = [
+                'change-status'   => 'transaction.change-status',
+            ];
+
+            $view               = [
+                'view'  => view($this->generateViewName('detail-transaction'))->with($data)->render(),
+            ];
+
+            return response()->json(responseSuccess($view));
         }
 
         return response()->json(responseFailed());
@@ -152,7 +197,7 @@ class PosController extends Controller
 
         $data['id']                 = $request->id;
         $data['item']               = $model;
-        $data['grandTotal']        = $grandTotal;
+        $data['grandTotal']         = $grandTotal;
 
         $data['button']             = [
             'change-status'   => 'transaction.change-status',
@@ -167,7 +212,10 @@ class PosController extends Controller
 
     public function transToday(Request $request)
     {
-        $model                      = $this->model->where('tanggal', date('Y-m-d'))
+        $kasir  = $this->kasirOpenToday();
+        $model                      = $this->model
+            ->where('kasir_id', $kasir->id)
+            ->where('tanggal', date('Y-m-d'))
             ->where('status', 'payment')
             ->orderBy('id', 'asc')
             ->get();
@@ -187,10 +235,14 @@ class PosController extends Controller
     {
         DB::connection()->disableQueryLog();
 
+        $kasir = $this->kasirOpenToday();
+
+
         $jml                = Transaction::where([
             'status' => 'open',
             'tanggal' => date('Y-m-d'),
-        ])
+            'kasir_id' => $kasir->id,
+        ])->orderBy('id', 'desc')
             ->where(function ($query) use ($request) {
                 $query->where("customer_name", 'LIKE', "%" . $request->q . "%");
             })
@@ -201,7 +253,8 @@ class PosController extends Controller
         $data               = Transaction::where([
             'status' => 'open',
             'tanggal' => date('Y-m-d'),
-        ])
+            'kasir_id' => $kasir->id,
+        ])->orderBy('id', 'desc')
             ->where(function ($query) use ($request) {
                 $query->where("customer_name", 'LIKE', "%" . $request->q . "%");
             })
@@ -211,7 +264,8 @@ class PosController extends Controller
             ->map(function ($item) {
                 return [
                     'id'            => $item->id,
-                    'text'          => $item->customer_name,
+                    'text'          => ucwords($item->customer_name),
+                    'no'            => $item->no,
                 ];
             });
 
@@ -241,13 +295,16 @@ class PosController extends Controller
         ];
     }
 
-    public function formCustomer(Request $request)
+    public function createCustomer(Request $request)
     {
-        $data['url']                = $this->generateUrl('store-customer');
-        $data['form']                = $this->generateUrl('form');
-        $data['data']               = [];
 
-        return view($this->generateViewName('form-customer'))->with($data);
+        $data['url']        = $this->generateUrl('customer.store');
+        $data['form']       = $this->generateViewName('customer.form');
+        $data['data']       = [
+            'list_tipe_pembayaran' => $this->listTipePembayaran(),
+        ];
+
+        return view($this->generateViewName('customer.create'))->with($data);
     }
 
     public function storeCustomer(Request $request)
@@ -256,7 +313,12 @@ class PosController extends Controller
 
             DB::beginTransaction();
 
+            $kasir  = $this->kasirOpenToday();
+
             $data  = $this->getRequest();
+
+            $data['kasir_id']   = $kasir->id;
+            $data['tanggal']    = date('Y-m-d');
 
             $model = $this->model->fill($data);
             $model->save();
@@ -270,20 +332,11 @@ class PosController extends Controller
             $log_helper->storeLog('add', $model->no ?? $model->id, $this->subtitle);
 
             DB::commit();
-            $response           = [
-                'status'            => true,
-                'msg'               => 'Data Saved.',
-                'data'              => $model,
-            ];
-            return response()->json($response);
+            return response()->json(responseSuccess($model, 'Customer berhasil dibuat, Customer: ' . ucwords($model->customer_name) . '(' . $model->no . ')'));
         } catch (Exception $e) {
 
             DB::rollback();
-            $response           = [
-                'status'            => false,
-                'msg'               => $e->getMessage(),
-            ];
-            return response()->json($response);
+            return response()->json(responseFailed($e->getMessage()));
         }
     }
 
